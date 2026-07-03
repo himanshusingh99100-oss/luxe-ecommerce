@@ -164,10 +164,176 @@ export const initMockDb = () => {
   }
 };
 
+// Curated premium images for DummyJSON categories to ensure high-end aesthetics
+const CATEGORY_IMAGES: Record<string, string> = {
+  "mens-watches": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+  "womens-watches": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80",
+  "womens-jewellery": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop&q=80",
+  "sunglasses": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=80",
+  "smartphones": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80",
+  "laptops": "https://images.unsplash.com/photo-1496181130204-755241524eab?w=600&auto=format&fit=crop&q=80",
+  "fragrances": "https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop&q=80",
+  "skin-care": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80",
+  "beauty": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80",
+  "furniture": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&auto=format&fit=crop&q=80",
+  "home-decoration": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&auto=format&fit=crop&q=80",
+  "mens-shirts": "https://images.unsplash.com/photo-1620012253295-c05cb1e7420b?w=600&auto=format&fit=crop&q=80",
+  "womens-dresses": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80",
+  "mens-shoes": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&auto=format&fit=crop&q=80",
+  "womens-shoes": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80"
+};
+
+// Maps DummyJSON product schema to the frontend's custom luxury eCommerce schema
+const mapDummyProduct = (p: any) => {
+  const compareAtPrice = p.discountPercentage > 0
+    ? Number((p.price / (1 - p.discountPercentage / 100)).toFixed(2))
+    : undefined;
+
+  const categoryObj = typeof p.category === "string"
+    ? {
+        _id: p.category,
+        name: p.category.charAt(0).toUpperCase() + p.category.slice(1).replace(/-/g, " "),
+        slug: p.category
+      }
+    : p.category;
+
+  const mappedReviews = p.reviews?.map((r: any, idx: number) => ({
+    _id: `rev-${p.id}-${idx}`,
+    name: r.reviewerName || "Anonymous Customer",
+    rating: r.rating || 5,
+    title: r.rating >= 4 ? "Excellent Quality" : "Average product",
+    comment: r.comment || "",
+    createdAt: r.date || new Date().toISOString()
+  })) || [];
+
+  return {
+    _id: String(p.id),
+    title: p.title,
+    description: p.description,
+    price: p.price,
+    compareAtPrice,
+    images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
+    category: categoryObj,
+    stock: p.stock,
+    brand: p.brand || "Luxury Brand",
+    ratings: p.rating || 5,
+    numReviews: mappedReviews.length,
+    colorVariants: [
+      { colorName: "Onyx Black", colorHex: "#111111", imageIndex: 0, stock: p.stock > 0 ? Math.ceil(p.stock / 2) : 0 },
+      { colorName: "Silver Mist", colorHex: "#CCCCCC", imageIndex: 0, stock: p.stock > 0 ? Math.floor(p.stock / 2) : 0 }
+    ],
+    sizes: p.category === "apparel" || p.category === "shoes" ? ["S", "M", "L", "XL"] : ["Standard"],
+    specifications: [
+      { name: "Brand", value: p.brand || "Luxury Brand" },
+      { name: "Warranty", value: p.warrantyInformation || "1 Year Warranty" },
+      { name: "Shipping", value: p.shippingInformation || "Ships in 3-5 days" }
+    ],
+    reviews: mappedReviews,
+    isFeatured: p.rating > 4.5,
+    isTrending: p.discountPercentage > 10
+  };
+};
+
 // Intercept Axios calls with custom fallbacks if server offline
 export const fetchApi = async (method: "get" | "post" | "put" | "delete", url: string, data?: any) => {
   initMockDb();
-  
+
+  // --- DUMMYJSON API INTERCEPTOR ---
+  if (url.startsWith("/products") || url.startsWith("/categories")) {
+    try {
+      if (url.startsWith("/categories")) {
+        const response = await axios.get("https://dummyjson.com/products/categories");
+        const rawCats = response.data;
+        const mappedCats = rawCats.map((c: any) => {
+          if (typeof c === "string") {
+            const name = c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, " ");
+            const image = CATEGORY_IMAGES[c] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600";
+            return { _id: c, name, slug: c, description: `${name} collections.`, image };
+          } else {
+            const slug = c.slug || "";
+            const name = c.name || (slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " "));
+            const image = CATEGORY_IMAGES[slug] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600";
+            return { _id: slug, name, slug, description: `${name} collections.`, image };
+          }
+        });
+        return mappedCats;
+      }
+
+      if (url.startsWith("/products")) {
+        const singleMatch = url.match(/\/products\/([a-zA-Z0-9-]+)$/);
+        const reviewMatch = url.match(/\/products\/([a-zA-Z0-9-]+)\/reviews$/);
+
+        if (reviewMatch) {
+          const prodId = reviewMatch[1];
+          const localReviewsKey = `dummy_reviews_${prodId}`;
+          const localReviews = JSON.parse(localStorage.getItem(localReviewsKey) || "[]");
+          const newReview = {
+            _id: `rev-${Date.now()}`,
+            name: data.name || "Customer",
+            rating: Number(data.rating),
+            title: data.title || "Review",
+            comment: data.comment,
+            createdAt: new Date().toISOString()
+          };
+          localReviews.push(newReview);
+          localStorage.setItem(localReviewsKey, JSON.stringify(localReviews));
+          return { message: "Review submitted successfully", review: newReview };
+        }
+
+        if (singleMatch) {
+          const prodId = singleMatch[1];
+          const response = await axios.get(`https://dummyjson.com/products/${prodId}`);
+          const mappedProd = mapDummyProduct(response.data);
+          
+          const localReviewsKey = `dummy_reviews_${prodId}`;
+          const localReviews = JSON.parse(localStorage.getItem(localReviewsKey) || "[]");
+          mappedProd.reviews = [...localReviews, ...mappedProd.reviews];
+          mappedProd.numReviews = mappedProd.reviews.length;
+          
+          return { product: mappedProd, reviews: mappedProd.reviews };
+        }
+
+        // GET /products with query parsing
+        const searchParams = new URLSearchParams(url.includes("?") ? url.split("?")[1] : "");
+        const limit = searchParams.get("limit") || "100";
+        const category = searchParams.get("category");
+        const search = searchParams.get("search");
+
+        let dummyUrl = "https://dummyjson.com/products";
+        if (search) {
+          dummyUrl = `https://dummyjson.com/products/search?q=${encodeURIComponent(search)}&limit=${limit}`;
+        } else if (category) {
+          dummyUrl = `https://dummyjson.com/products/category/${category}?limit=${limit}`;
+        } else {
+          dummyUrl = `https://dummyjson.com/products?limit=${limit}`;
+        }
+
+        const response = await axios.get(dummyUrl);
+        const rawProducts = response.data.products || [];
+        let mappedList = rawProducts.map(mapDummyProduct);
+
+        // Multi-field local search safety to guarantee matches on title OR brand
+        if (search) {
+          const queryLower = search.toLowerCase();
+          mappedList = mappedList.filter((p: any) => 
+            p.title.toLowerCase().includes(queryLower) || 
+            (p.brand && p.brand.toLowerCase().includes(queryLower))
+          );
+        }
+
+        // Filter category locally if both parameters were present
+        if (search && category) {
+          mappedList = mappedList.filter((p: any) => p.category?.slug === category);
+        }
+
+        return { products: mappedList };
+      }
+    } catch (apiError) {
+      console.error("DummyJSON API Error, falling back to local fallback:", apiError);
+      // Allow it to fall back to the offline simulation tables below
+    }
+  }
+
   const online = await isServerOnline();
   if (online) {
     const config = { method, url, data };

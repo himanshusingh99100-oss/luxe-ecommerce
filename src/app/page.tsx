@@ -19,10 +19,12 @@ export default function HomePage() {
   const [products, setProducts] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadHomeContent = async () => {
       try {
+        setError(null);
         const [bannersRes, categoriesRes, productsRes] = await Promise.all([
           fetchApi("get", "/banners"),
           fetchApi("get", "/categories"),
@@ -32,8 +34,9 @@ export default function HomePage() {
         setBanners(bannersRes);
         setCategories(categoriesRes);
         setProducts(productsRes.products || productsRes);
-      } catch (error) {
-        console.error("Failed to load home page catalogs:", error);
+      } catch (err) {
+        console.error("Failed to load home page catalogs:", err);
+        setError("Unable to load premium collections. Please verify your connection and try again.");
       } finally {
         setLoading(false);
       }
@@ -55,6 +58,12 @@ export default function HomePage() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-12 md:py-20 w-full space-y-20">
         
+        {error && (
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/50 rounded-[32px] p-6 text-center text-red-700 dark:text-red-400 font-medium text-sm max-w-2xl mx-auto">
+            {error}
+          </div>
+        )}
+
         {/* Flash Sale Banner */}
         {!loading && products.length > 0 && (
           <FlashSale products={products.filter((p) => p.compareAtPrice && p.compareAtPrice > p.price)} />

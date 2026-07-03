@@ -25,6 +25,7 @@ export default function ProductDetailsPage() {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
@@ -40,6 +41,7 @@ export default function ProductDetailsPage() {
 
   const loadProductData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchApi("get", `/products/${id}`);
       setProduct(data.product);
@@ -59,8 +61,9 @@ export default function ProductDetailsPage() {
       // Filter out current product
       const filtered = (related.products || related).filter((p: any) => p._id !== data.product._id);
       setRelatedProducts(filtered.slice(0, 4));
-    } catch (error) {
-      console.error("Failed to load product detail:", error);
+    } catch (err) {
+      console.error("Failed to load product detail:", err);
+      setError("Unable to load the premium product details. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -113,12 +116,60 @@ export default function ProductDetailsPage() {
 
   if (loading && !product) {
     return (
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#121212] text-gray-800 dark:text-[#EAEAEA] flex flex-col justify-between animate-pulse">
+        <Navbar />
+        <main className="flex-1 max-w-7xl mx-auto px-6 py-24 md:py-32 w-full space-y-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            {/* Left Column: Image Gallery Skeleton */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="aspect-square bg-gray-200 dark:bg-gray-850 border border-gray-200/60 dark:border-gray-800 rounded-[32px]"></div>
+              <div className="flex space-x-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-20 h-20 bg-gray-200 dark:bg-gray-850 border border-gray-200/60 dark:border-gray-800 rounded-2xl"></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Pricing & Options Skeleton */}
+            <div className="lg:col-span-5 space-y-8">
+              <div className="space-y-4">
+                <div className="h-4 bg-gray-200 dark:bg-gray-850 rounded w-24"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-850 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-850 rounded w-1/3"></div>
+              </div>
+              <div className="space-y-4 pt-4 border-t border-gray-250/20">
+                <div className="h-6 bg-gray-200 dark:bg-gray-850 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-850 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-850 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-850 rounded w-2/3"></div>
+              </div>
+              <div className="space-y-4 pt-4 border-t border-gray-250/20">
+                <div className="h-10 bg-gray-200 dark:bg-gray-850 rounded w-full"></div>
+                <div className="h-12 bg-gray-200 dark:bg-gray-850 rounded w-full"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
       <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#121212] text-gray-800 dark:text-[#EAEAEA] flex flex-col justify-between">
         <Navbar />
         <main className="flex-1 max-w-7xl mx-auto px-6 py-24 md:py-32 w-full flex items-center justify-center">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-12 h-12 border-4 border-[#004AC6] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-550 dark:text-gray-400 font-medium">Loading premium product...</p>
+          <div className="text-center space-y-4 max-w-md">
+            <ShieldAlert className="w-12 h-12 text-red-500 mx-auto" />
+            <h2 className="text-xl font-bold">API Load Error</h2>
+            <p className="text-gray-500 dark:text-gray-400">{error}</p>
+            <button
+              onClick={() => loadProductData()}
+              className="bg-[#004AC6] text-white font-bold py-3 px-6 rounded-2xl transition-all hover:bg-blue-700"
+            >
+              Retry Loading
+            </button>
           </div>
         </main>
         <Footer />

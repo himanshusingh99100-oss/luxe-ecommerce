@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { fetchApi } from "@/utils/api";
-import { SlidersHorizontal, ArrowUpDown, Search, Grid, List, X, ShoppingBag, Heart } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown, Search, Grid, List, X, ShoppingBag, Heart, ShieldAlert } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/hooks/useCart";
@@ -28,6 +28,7 @@ function CatalogContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters State
   const [searchVal, setSearchVal] = useState(querySearch);
@@ -63,6 +64,7 @@ function CatalogContent() {
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
+      setError(null);
       try {
         let endpoint = "/products?limit=50";
         if (activeCategory) {
@@ -90,6 +92,7 @@ function CatalogContent() {
         setProducts(list);
       } catch (err) {
         console.error("Failed to load products:", err);
+        setError("We are experiencing issues fetching products from the luxury catalog. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -249,7 +252,21 @@ function CatalogContent() {
 
           {/* Catalog Listing */}
           <div className="lg:col-span-3">
-            {loading ? (
+            {error ? (
+              <div className="text-center py-20 bg-white dark:bg-[#1C1C1E] border border-gray-200/60 dark:border-gray-800 rounded-[32px] p-6 max-w-md mx-auto space-y-4">
+                <ShieldAlert className="w-8 h-8 text-red-500 mx-auto" />
+                <h3 className="font-bold text-lg text-gray-950 dark:text-white">API Load Failure</h3>
+                <p className="text-gray-450 text-xs leading-relaxed">
+                  {error}
+                </p>
+                <button
+                  onClick={() => router.refresh()}
+                  className="bg-blue-600 text-white text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-2xl shadow-sm"
+                >
+                  Retry Loading
+                </button>
+              </div>
+            ) : loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] bg-white dark:bg-[#1C1C1E] border border-gray-200/60 dark:border-gray-800 rounded-3xl animate-pulse"></div>

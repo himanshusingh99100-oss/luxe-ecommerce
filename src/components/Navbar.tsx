@@ -44,7 +44,7 @@ export default function Navbar() {
             : "bg-transparent py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold tracking-widest text-[#004AC6] uppercase">Royal</span>
@@ -68,7 +68,7 @@ export default function Navbar() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-2 md:space-x-3">
+          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
             {/* Currency Selector */}
             <div className="relative hidden md:block">
               <select
@@ -87,7 +87,7 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-gray-450 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all"
+              className="p-2 text-gray-600 dark:text-gray-450 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-xl transition-all hidden md:block"
               aria-label="Toggle Theme"
             >
               {mounted && theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -102,7 +102,7 @@ export default function Navbar() {
 
             <Link
               href="/account"
-              className="p-2 text-gray-600 dark:text-gray-350 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-850/50 rounded-xl transition-all relative"
+              className="p-2 text-gray-600 dark:text-gray-350 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-850/50 rounded-xl transition-all relative hidden sm:block"
             >
               <Heart className="w-5 h-5" />
               {wishlist.length > 0 && (
@@ -124,7 +124,7 @@ export default function Navbar() {
 
             <Link
               href="/account"
-              className="p-2 text-gray-600 dark:text-gray-350 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-855/50 rounded-xl transition-all flex items-center"
+              className="p-2 text-gray-600 dark:text-gray-350 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-855/50 rounded-xl transition-all flex items-center hidden sm:block"
             >
               <User className="w-5 h-5" />
             </Link>

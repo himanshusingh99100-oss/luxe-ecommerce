@@ -14,7 +14,7 @@ export default function CategoryPills({
   onSelectCategory
 }: CategoryPillsProps) {
   return (
-    <div className="flex items-center space-x-3 overflow-x-auto pb-4 scrollbar-none">
+    <div className="flex items-center space-x-3 overflow-x-auto pb-4 scrollbar-none w-full max-w-full">
       <button
         onClick={() => onSelectCategory("")}
         className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap focus:outline-none ${

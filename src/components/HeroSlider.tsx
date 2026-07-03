@@ -73,7 +73,7 @@ export default function HeroSlider({ banners }: HeroSliderProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-4xl md:text-6xl font-bold tracking-tight leading-none"
+                className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-none"
               >
                 {banners[current].title}
               </motion.h2>
@@ -81,7 +81,7 @@ export default function HeroSlider({ banners }: HeroSliderProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="text-base md:text-xl text-gray-200 font-light"
+                className="text-xs sm:text-base md:text-xl text-gray-200 font-light"
               >
                 {banners[current].subtitle}
               </motion.p>

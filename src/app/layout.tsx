@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
 import { WishlistProvider } from "../context/WishlistContext";
@@ -45,6 +46,7 @@ export default function RootLayout({
             </AuthProvider>
           </CurrencyProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
